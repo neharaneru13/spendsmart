@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Budget Forecast &middot; SpendSmart{% endblock %}
+
+{% block content %}
+<h1>Budget Forecast</h1>
+<p class="subtitle">Advanced Function: CTE + Multi-table JOIN + SUM + Date Arithmetic + CASE</p>
+
+<section class="card">
+  <form method="get">
+    <div class="filters">
+      <div class="field">
+        <label>User</label>
+        <select name="user_id">
+          {% for u in users %}
+            <option value="{{ u.user_id }}" {% if selected_user == u.user_id %}selected{% endif %}>{{ u.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>As of Date</label>
+        <input type="month" name="month" value="{{ month }}">
+      </div>
+      <div class="field">
+        <button type="submit" class="btn btn-primary">Run Forecast</button>
+      </div>
+    </div>
+  </form>
+  <p class="muted" style="margin-top:12px;">Day {{ days_elapsed }} of {{ days_in_month }} &middot; {{ days_remaining }} day{{ '' if days_remaining == 1 else 's' }} remaining</p>
+</section>
+
+<div class="sql-block">
+<pre>WITH spending_so_far AS (
+  SELECT b.budget_id, u.name, c.name, b.monthly_limit,
+         COALESCE(SUM(t.amount), 0) AS total_spent,
+         DATEDIFF(...) + 1 AS days_elapsed, ...
+  FROM Budget b JOIN User u JOIN Category c
+  LEFT JOIN Account a LEFT JOIN Transaction t ...
+  GROUP BY ...)
+SELECT *, ROUND(total_spent / days_elapsed, 2) AS daily_rate,
+  CASE WHEN projected &gt; limit THEN 'OVER BUDGET' ELSE 'On track' END</pre>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Budget Limit</th>
+        <th>Spent So Far</th>
+        <th>Daily Rate</th>
+        <th>Days Left</th>
+        <th>Projected Total</th>
+        <th>Over/Under</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in forecasts %}
+        <tr class="row-{{ f.status }}">
+          <td>{{ f.category }}</td>
+          <td>{{ f.monthly_limit | money }}</td>
+          <td>{{ f.spent | money }}</td>
+          <td>{{ f.daily_rate | money }}/day</td>
+          <td>{{ days_remaining }}</td>
+          <td>{{ f.projected | money }}</td>
+          <td class="{% if f.over_by > 0 %}amount-over{% else %}amount-under{% endif %}">
+            {% if f.over_by > 0 %}+{% endif %}{{ f.over_by | money }}
+          </td>
+          <td>
+            {% if f.status == 'over_budget' %}
+              <span class="badge badge-over">Over Budget</span>
+            {% elif f.status == 'at_risk' %}
+              <span class="badge badge-risk">At Risk</span>
+            {% else %}
+              <span class="badge badge-ok">On Track</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="muted" style="text-align:center; padding:24px;">No budgets set for this user/month. <a href="{{ url_for('add', tab='budget') }}">Add a budget</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

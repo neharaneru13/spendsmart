@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Flask / runtime
+instance/
+*.log
+*.sqlite3
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# Claude Code local config (not needed for app to run)
+.claude/
+
+# MySQL dumps
+*.sql.bak

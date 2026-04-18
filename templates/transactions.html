@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Transactions &middot; SpendSmart{% endblock %}
+
+{% block content %}
+<h1>Search &amp; List Transactions</h1>
+
+<section class="card">
+  <form method="get">
+    <div class="filters" style="margin-bottom: 16px;">
+      <div class="field">
+        <label>User</label>
+        <select name="user_id">
+          <option value="">All Users</option>
+          {% for u in users %}
+            <option value="{{ u.user_id }}" {% if filters.user_id == u.user_id %}selected{% endif %}>{{ u.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select name="category_id">
+          <option value="">All Categories</option>
+          {% for c in categories %}
+            <option value="{{ c.category_id }}" {% if filters.category_id == c.category_id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select name="type">
+          <option value="">All</option>
+          <option value="expense" {% if filters.type == 'expense' %}selected{% endif %}>Expense</option>
+          <option value="income"  {% if filters.type == 'income'  %}selected{% endif %}>Income</option>
+        </select>
+      </div>
+    </div>
+    <div class="filters">
+      <div class="field">
+        <label>From</label>
+        <input type="date" name="start_date" value="{{ filters.start_date or '' }}">
+      </div>
+      <div class="field">
+        <label>To</label>
+        <input type="date" name="end_date" value="{{ filters.end_date or '' }}">
+      </div>
+      <div class="field">
+        <label>Min $</label>
+        <input type="number" step="0.01" name="min_amount" placeholder="0.00" value="{{ filters.min_amount if filters.min_amount is not none else '' }}">
+      </div>
+      <div class="field">
+        <label>Max $</label>
+        <input type="number" step="0.01" name="max_amount" placeholder="9999" value="{{ filters.max_amount if filters.max_amount is not none else '' }}">
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top: 16px;">
+      <button type="submit" class="btn btn-primary">Search</button>
+      <a href="{{ url_for('transactions') }}" class="btn btn-ghost">Clear</a>
+    </div>
+  </form>
+</section>
+
+<div class="result-count">{{ rows|length }} transaction{{ '' if rows|length == 1 else 's' }} found</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Account</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.transaction_id }}</td>
+          <td>{{ r.user_name }}</td>
+          <td>{{ r.account_type }}</td>
+          <td>{{ r.category }}</td>
+          <td class="amount-{{ r.type }}">{{ r.amount | money }}</td>
+          <td>{{ r.date }}</td>
+          <td><span class="badge badge-{{ r.type }}">{{ r.type }}</span></td>
+          <td>
+            <div class="row-actions">
+              <a href="{{ url_for('edit', transaction_id=r.transaction_id) }}" class="btn-success-small">Edit</a>
+              <form method="post" action="{{ url_for('delete', transaction_id=r.transaction_id) }}"
+                    onsubmit="return confirm('Delete transaction #{{ r.transaction_id }}?');"
+                    style="display:inline;">
+                <button type="submit" class="btn-danger-small">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="muted" style="text-align:center; padding: 24px;">No transactions match your filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Spending Summary &middot; SpendSmart{% endblock %}
+
+{% block content %}
+<h1>Spending Summary</h1>
+<p class="subtitle">Aggregate Query: SUM + COUNT + GROUP BY per category</p>
+
+<section class="card">
+  <form method="get">
+    <div class="filters">
+      <div class="field">
+        <label>User</label>
+        <select name="user_id">
+          <option value="">All Users</option>
+          {% for u in users %}
+            <option value="{{ u.user_id }}" {% if selected_user == u.user_id %}selected{% endif %}>{{ u.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Month</label>
+        <input type="month" name="month" value="{{ month }}">
+      </div>
+      <div class="field">
+        <button type="submit" class="btn btn-primary">View</button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<div class="sql-block">
+<pre>SELECT c.name, COUNT(*), SUM(t.amount)
+FROM Transaction t JOIN Category c ...
+WHERE t.type = 'expense' AND t.date IN [{{ month }}]
+GROUP BY c.name ORDER BY total_spent DESC</pre>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th># Transactions</th>
+        <th>Total Spent</th>
+        <th>% of Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.category }}</td>
+          <td>{{ r.tx_count }}</td>
+          <td>{{ r.total | money }}</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-pill">
+                <div class="bar-fill" style="width: {{ r.pct }}%;">{{ r.pct | round | int }}%</div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted" style="text-align:center; padding:24px;">No expenses recorded for this period.</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if rows %}
+    <tfoot>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>{{ rows | sum(attribute='tx_count') }}</strong></td>
+        <td><strong>{{ grand_total | money }}</strong></td>
+        <td></td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+{% endblock %}

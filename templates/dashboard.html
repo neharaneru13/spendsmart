@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &middot; SpendSmart{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<section class="stats">
+  <div class="stat-card income">
+    <div class="label">Total Income</div>
+    <div class="value">{{ totals.total_income | money }}</div>
+  </div>
+  <div class="stat-card expense">
+    <div class="label">Total Expenses</div>
+    <div class="value">{{ totals.total_expense | money }}</div>
+  </div>
+  <div class="stat-card net {% if totals.net >= 0 %}positive{% endif %}">
+    <div class="label">Net Balance</div>
+    <div class="value">{{ totals.net | money }}</div>
+  </div>
+</section>
+
+<h2>Recent Transactions</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Account</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in recent %}
+        <tr>
+          <td>{{ t.transaction_id }}</td>
+          <td>{{ t.user_name }}</td>
+          <td>{{ t.account_type }}</td>
+          <td>{{ t.category }}</td>
+          <td class="amount-{{ t.type }}">{{ t.amount | money }}</td>
+          <td>{{ t.date }}</td>
+          <td><span class="badge badge-{{ t.type }}">{{ t.type }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center; padding: 24px;">No transactions yet. <a href="{{ url_for('add') }}">Add one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

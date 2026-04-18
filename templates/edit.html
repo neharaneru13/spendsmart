@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Edit Transaction &middot; SpendSmart{% endblock %}
+
+{% macro field_error(errors, name) -%}
+  {% if errors.get(name) %}<div class="field-error">{{ errors[name] }}</div>{% endif %}
+{%- endmacro %}
+
+{% macro field_class(errors, name) -%}
+  {% if errors.get(name) %}has-error{% endif %}
+{%- endmacro %}
+
+{% block content %}
+<h1>Edit Transaction #{{ tx.transaction_id }}</h1>
+
+{% if errors %}
+  <div class="flash flash-error">Please fix the errors below.</div>
+{% endif %}
+
+{% set current = form if form else tx %}
+
+<section class="card">
+  <form method="post" class="form-stacked" novalidate>
+    <div class="field {{ field_class(errors, 'account_id') }}">
+      <label>Account</label>
+      <select name="account_id" required>
+        {% for a in accounts %}
+          <option value="{{ a.account_id }}" {% if current.get('account_id')|string == a.account_id|string %}selected{% endif %}>
+            {{ a.user_name }} — {{ a.type }} (#{{ a.account_id }})
+          </option>
+        {% endfor %}
+      </select>
+      {{ field_error(errors, 'account_id') }}
+    </div>
+    <div class="field {{ field_class(errors, 'category_id') }}">
+      <label>Category</label>
+      <select name="category_id" required>
+        {% for c in categories %}
+          <option value="{{ c.category_id }}" {% if current.get('category_id')|string == c.category_id|string %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+      {{ field_error(errors, 'category_id') }}
+    </div>
+    <div class="field {{ field_class(errors, 'amount') }}">
+      <label>Amount</label>
+      <input type="number" step="0.01" min="0.01" name="amount" value="{{ current.get('amount', '') }}" required>
+      {{ field_error(errors, 'amount') }}
+    </div>
+    <div class="field {{ field_class(errors, 'date') }}">
+      <label>Date</label>
+      <input type="date" name="date" value="{{ current.get('date', '') }}" required>
+      {{ field_error(errors, 'date') }}
+    </div>
+    <div class="field {{ field_class(errors, 'type') }}">
+      <label>Type</label>
+      <select name="type" required>
+        <option value="expense" {% if current.get('type') == 'expense' %}selected{% endif %}>Expense</option>
+        <option value="income"  {% if current.get('type') == 'income'  %}selected{% endif %}>Income</option>
+      </select>
+      {{ field_error(errors, 'type') }}
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="{{ url_for('transactions') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

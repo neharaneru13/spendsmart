@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Add Records &middot; SpendSmart{% endblock %}
+
+{% macro field_error(errors, name) -%}
+  {% if errors.get(name) %}<div class="field-error">{{ errors[name] }}</div>{% endif %}
+{%- endmacro %}
+
+{% macro field_class(errors, name) -%}
+  {% if errors.get(name) %}has-error{% endif %}
+{%- endmacro %}
+
+{% block content %}
+<h1>Add Records</h1>
+
+<div class="tabs" role="tablist">
+  {% set tabs = [('transaction','Transaction'), ('user','User'), ('account','Account'), ('budget','Budget')] %}
+  {% for key, label in tabs %}
+    <a href="{{ url_for('add', tab=key) }}" class="tab {% if active_tab == key %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if errors %}
+  <div class="flash flash-error">Please fix the errors below.</div>
+{% endif %}
+
+<section class="card">
+  {% if active_tab == 'transaction' %}
+    <h2>New Transaction</h2>
+    <form method="post" class="form-stacked" novalidate>
+      <input type="hidden" name="form_type" value="transaction">
+      <div class="field {{ field_class(errors, 'account_id') }}">
+        <label>Account</label>
+        <select name="account_id" required>
+          <option value="">Select account</option>
+          {% for a in accounts %}
+            <option value="{{ a.account_id }}" {% if form.get('account_id')|string == a.account_id|string %}selected{% endif %}>
+              {{ a.user_name }} — {{ a.type }} (${{ '%.2f' % a.balance }})
+            </option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'account_id') }}
+      </div>
+      <div class="field {{ field_class(errors, 'category_id') }}">
+        <label>Category</label>
+        <select name="category_id" required>
+          <option value="">Select category</option>
+          {% for c in categories %}
+            <option value="{{ c.category_id }}" {% if form.get('category_id')|string == c.category_id|string %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'category_id') }}
+      </div>
+      <div class="field {{ field_class(errors, 'amount') }}">
+        <label>Amount</label>
+        <input type="number" step="0.01" min="0.01" name="amount" placeholder="0.00" value="{{ form.get('amount', '') }}" required>
+        {{ field_error(errors, 'amount') }}
+      </div>
+      <div class="field {{ field_class(errors, 'date') }}">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ form.get('date', today) }}" required>
+        {{ field_error(errors, 'date') }}
+      </div>
+      <div class="field {{ field_class(errors, 'type') }}">
+        <label>Type</label>
+        <select name="type" required>
+          <option value="expense" {% if form.get('type', 'expense') == 'expense' %}selected{% endif %}>Expense</option>
+          <option value="income"  {% if form.get('type') == 'income'  %}selected{% endif %}>Income</option>
+        </select>
+        {{ field_error(errors, 'type') }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Add Transaction</button>
+    </form>
+
+  {% elif active_tab == 'user' %}
+    <h2>New User</h2>
+    <form method="post" class="form-stacked" novalidate>
+      <input type="hidden" name="form_type" value="user">
+      <div class="field {{ field_class(errors, 'name') }}">
+        <label>Name</label>
+        <input type="text" name="name" value="{{ form.get('name', '') }}" required maxlength="100">
+        {{ field_error(errors, 'name') }}
+      </div>
+      <div class="field {{ field_class(errors, 'email') }}">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ form.get('email', '') }}" required maxlength="150">
+        {{ field_error(errors, 'email') }}
+      </div>
+      <div class="field {{ field_class(errors, 'password') }}">
+        <label>Password <span class="muted">(minimum 6 characters)</span></label>
+        <input type="password" name="password" minlength="6" required>
+        {{ field_error(errors, 'password') }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Add User</button>
+    </form>
+
+  {% elif active_tab == 'account' %}
+    <h2>New Account</h2>
+    <form method="post" class="form-stacked" novalidate>
+      <input type="hidden" name="form_type" value="account">
+      <div class="field {{ field_class(errors, 'user_id') }}">
+        <label>User</label>
+        <select name="user_id" required>
+          <option value="">Select user</option>
+          {% for u in users %}
+            <option value="{{ u.user_id }}" {% if form.get('user_id')|string == u.user_id|string %}selected{% endif %}>{{ u.name }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'user_id') }}
+      </div>
+      <div class="field {{ field_class(errors, 'type') }}">
+        <label>Account Type</label>
+        <select name="type" required>
+          {% for opt in ['Checking', 'Savings', 'Credit Card'] %}
+            <option value="{{ opt }}" {% if form.get('type', 'Checking') == opt %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'type') }}
+      </div>
+      <div class="field {{ field_class(errors, 'balance') }}">
+        <label>Starting Balance</label>
+        <input type="number" step="0.01" name="balance" placeholder="0.00" value="{{ form.get('balance', '0.00') }}">
+        {{ field_error(errors, 'balance') }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Add Account</button>
+    </form>
+
+  {% elif active_tab == 'budget' %}
+    <h2>New Budget</h2>
+    <form method="post" class="form-stacked" novalidate>
+      <input type="hidden" name="form_type" value="budget">
+      <div class="field {{ field_class(errors, 'user_id') }}">
+        <label>User</label>
+        <select name="user_id" required>
+          <option value="">Select user</option>
+          {% for u in users %}
+            <option value="{{ u.user_id }}" {% if form.get('user_id')|string == u.user_id|string %}selected{% endif %}>{{ u.name }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'user_id') }}
+      </div>
+      <div class="field {{ field_class(errors, 'category_id') }}">
+        <label>Category</label>
+        <select name="category_id" required>
+          <option value="">Select category</option>
+          {% for c in categories %}
+            <option value="{{ c.category_id }}" {% if form.get('category_id')|string == c.category_id|string %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(errors, 'category_id') }}
+      </div>
+      <div class="field {{ field_class(errors, 'monthly_limit') }}">
+        <label>Monthly Limit</label>
+        <input type="number" step="0.01" min="0.01" name="monthly_limit" placeholder="0.00" value="{{ form.get('monthly_limit', '') }}" required>
+        {{ field_error(errors, 'monthly_limit') }}
+      </div>
+      <div class="field {{ field_class(errors, 'month') }}">
+        <label>Month</label>
+        <input type="month" name="month" value="{{ form.get('month', this_month) }}" required>
+        {{ field_error(errors, 'month') }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Add Budget</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

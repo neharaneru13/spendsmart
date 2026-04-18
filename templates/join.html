@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Join View &middot; SpendSmart{% endblock %}
+
+{% block content %}
+<h1>Join View</h1>
+<p class="subtitle">4-Table JOIN: Transaction &times; Account &times; Category &times; User</p>
+
+<div class="sql-block">
+<pre>SELECT t.transaction_id, u.name AS user,
+       a.type AS account, c.name AS category,
+       t.amount, t.date, t.type
+FROM Transaction t
+JOIN Account  a ON t.account_id  = a.account_id
+JOIN User     u ON a.user_id     = u.user_id
+JOIN Category c ON t.category_id = c.category_id
+ORDER BY t.date DESC;</pre>
+</div>
+
+<div class="result-count">{{ rows|length }} rows returned</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Account</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.transaction_id }}</td>
+          <td>{{ r.user_name }}</td>
+          <td>{{ r.account_type }}</td>
+          <td>{{ r.category }}</td>
+          <td class="amount-{{ r.type }}">{{ r.amount | money }}</td>
+          <td>{{ r.date }}</td>
+          <td><span class="badge badge-{{ r.type }}">{{ r.type }}</span></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

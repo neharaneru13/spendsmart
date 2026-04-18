@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SpendSmart{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <a href="{{ url_for('dashboard') }}">SpendSmart</a>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}"    class="{% if request.endpoint=='dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="{{ url_for('transactions') }}" class="{% if request.endpoint=='transactions' %}active{% endif %}">Transactions</a>
+      <a href="{{ url_for('add') }}"          class="{% if request.endpoint in ['add','edit'] %}active{% endif %}">Add</a>
+      <a href="{{ url_for('join_view') }}"    class="{% if request.endpoint=='join_view' %}active{% endif %}">Join View</a>
+      <a href="{{ url_for('summary') }}"      class="{% if request.endpoint=='summary' %}active{% endif %}">Summary</a>
+      <a href="{{ url_for('forecast') }}"     class="{% if request.endpoint=='forecast' %}active{% endif %}">Forecast</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if body_error %}
+      <div class="card"><h2>{{ body_error }}</h2></div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <small>SpendSmart &middot; CS 4710 Database Systems &middot; Personal Finance Tracker</small>
+  </footer>
+</body>
+</html>
